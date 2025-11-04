@@ -1,147 +1,146 @@
 import gradio as gr
 import random
 
-# basic state variables
+# --- system state ---
 phase = "start"
 system_health = 100
+img_state = 1  # reserved for future component indicators
+
+# img_state reference (future visual system)
+# 1 = System normal / stable
+# 2 = Oxygen system issue
+# 3 = Cooling system issue
+# 4 = Power system issue
+# 5 = System recovering / repair successful
+# 7 = Critical failure / shutdown
+
+# (State 6 removed — same meaning as 1)
+
 
 def reset_game():
-    global phase, system_health
+    global phase, system_health, img_state
     phase = "start"
     system_health = 100
+    img_state = 1
 
-    first_message = [{
+    intro = [{
         "role": "assistant",
-        "content": "Hello, I'm CoAura. I noticed an irregular system reading. How would you like to proceed?"
+        "content": "Hi, I'm CoAura. One of the system components may be acting up. How would you like to start?"
     }]
-    
-    options = ["Run a system check", "Ignore for now"]
-    return first_message, gr.update(choices=options, value=None)
+    options = ["Run a system scan", "Ignore for now"]
+    return intro, gr.update(choices=options, value=None)
 
-def progress(choice, history):
-    global phase, system_health
+def progress(choice, chat):
+    global phase, system_health, img_state
 
     if not choice:
-        history.append({"role":"assistant","content":"Please choose an option so I can continue."})
-        return history, gr.update()
+        chat.append({"role":"assistant","content":"Please choose an option so I can continue."})
+        return chat, gr.update()
 
-    history.append({"role":"user","content":choice})
+    chat.append({"role":"user","content":choice})
 
-    # system fail safe
+    # system failsafe
     if system_health <= 0 and phase != "end":
-        reply = "Something went wrong and the system couldn't recover. We can restart whenever you're ready."
-        options = ["Start again"]
+        chat.append({"role":"assistant","content":"The system could not recover. Restart when ready."})
         phase = "end"
-        history.append({"role":"assistant","content":reply})
-        return history, gr.update(choices=options, value="Start again")
+        return chat, gr.update(choices=["Restart"], value="Restart")
 
-    # Conversation flow (not roleplaying a reactor narrative, just simple AI logic)
+    # --- flow ---
     if phase == "start":
-        if choice == "Run a system check":
-            phase = "coolant"
-            reply = "Okay, I looked into it. There's a part of the system performing below expected levels. What would you like to try?"
-            options = ["Attempt a fix", "Try another method"]
+        if choice == "Run a system scan":
+            component = random.choice(["O2", "Cooling", "Power"])
+            
+            if component == "O2":
+                img_state = 2
+                reply = "Scan complete — oxygen system is unstable. What should we do?"
+                options = ["Attempt repair", "Reroute backup oxygen"]
+                phase = "o2"
+
+            elif component == "Cooling":
+                img_state = 3
+                reply = "Scan complete — cooling system temperature is abnormal. What next?"
+                options = ["Increase coolant flow", "Switch to backup cooling"]
+                phase = "cooling"
+
+            else:  # Power
+                img_state = 4
+                reply = "Scan complete — power fluctuation detected. Choose a response:"
+                options = ["Stabilize voltage", "Reroute power"]
+                phase = "power"
+
         elif choice == "Ignore for now":
-            phase = "overheat"
             system_health -= 25
-            reply = "Understood. However, leaving it unchecked has caused some issues. What should we try now?"
-            options = ["Take quick action", "Contact support"]
+            reply = "Ignoring the issue made things worse. What should we do now?"
+            options = ["Run a system scan", "Reboot subsystem"]
+        
         else:
-            reply = "Hmm, I didn't understand that."
+            reply = "I didn't quite understand that."
             options = []
 
-    elif phase == "coolant":
-        if choice == "Attempt a fix":
-            if random.random() < 0.5:
-                phase = "critical"
-                system_health -= 40
-                reply = "It didn’t quite work. The system is still unstable. What would you like to do next?"
-                options = ["Try again", "Stop here"]
-            else:
-                phase = "reroute"
-                reply = "Great, that helped. The system is stabilizing. Shall we continue?"
-                options = ["Continue"]
-        elif choice == "Try another method":
-            phase = "end"
-            reply = "Good thinking. That approach worked, and everything is running normally again."
-            options = ["Start again"]
-        else:
-            reply = "I'm not sure what you meant."
-            options = []
-
-    elif phase == "overheat":
-        if choice == "Take quick action":
-            if random.random() < 0.3:
-                system_health = 0
-                reply = "The quick fix didn’t succeed and caused a failure."
-            else:
-                phase = "end"
-                system_health -= 10
-                reply = "That helped enough for now. The system is recovering."
-            options = ["Start again"]
-        elif choice == "Contact support":
-            phase = "manual"
-            system_health -= 20
-            reply = "Support didn't connect. Let's try another approach."
-            options = ["Manual attempt", "Shut the system down"]
-        else:
-            reply = "I didn’t catch that."
-            options = []
-
-    elif phase == "critical":
-        if choice == "Try again":
-            if random.random() < 0.6:
-                phase = "reroute"
-                reply = "That did the trick! Things are stabilizing."
-                options = ["Continue"]
-            else:
-                system_health = 0
-                phase = "end"
-                reply = "Unfortunately, it failed again and the system shut down."
-                options = ["Start again"]
-        elif choice == "Stop here":
-            system_health = 0
-            phase = "end"
-            reply = "System halted. We can restart anytime."
-            options = ["Start again"]
-        else:
-            reply = "Can you choose one of the listed options?"
-            options = []
-
-    elif phase == "manual":
-        if choice == "Manual attempt":
-            if random.random() < 0.7:
-                reply = "Nice — that worked. Everything is back to normal."
-            else:
-                system_health = 0
-                reply = "The attempt didn’t succeed and caused a shutdown."
+    # ---- Oxygen component ----
+    elif phase == "o2":
+        if random.random() < 0.5:
+            img_state = 5
+            reply = "Good call — oxygen levels stabilizing."
+            phase = "finish"
+            options = ["Continue"]
         else:
             system_health = 0
-            reply = "Shutdown executed. System is offline."
-        options = ["Start again"]
-        phase = "end"
+            img_state = 7
+            reply = "Repair failed — oxygen system collapsed."
+            options = ["Restart"]
+            phase = "end"
 
-    elif phase == "reroute":
-        reply = "Everything looks good now. Thanks for working through that with me."
-        options = ["Start again"]
-        phase = "end"
+    # ---- Cooling system ----
+    elif phase == "cooling":
+        if random.random() < 0.5:
+            img_state = 5
+            reply = "Cooling stabilized. Temperature returning to safe levels."
+            phase = "finish"
+            options = ["Continue"]
+        else:
+            system_health = 0
+            img_state = 7
+            reply = "Cooling intervention failed — system overheated."
+            options = ["Restart"]
+            phase = "end"
 
+    # ---- Power system ----
+    elif phase == "power":
+        if random.random() < 0.5:
+            img_state = 5
+            reply = "Power grid stabilized. System normal again."
+            phase = "finish"
+            options = ["Continue"]
+        else:
+            system_health = 0
+            img_state = 7
+            reply = "Voltage spike — power system crashed."
+            options = ["Restart"]
+            phase = "end"
+
+    # ---- Recovery state ----
+    elif phase == "finish":
+        img_state = 6
+        reply = "Everything looks stable now. Restart?"
+        phase = "end"
+        options = ["Restart"]
+
+    # ---- Restart handler ----
     elif phase == "end":
-        if "start" in choice.lower():
-            msgs, opts = reset_game()
-            return msgs, opts
+        if "restart" in choice.lower():
+            return reset_game()
+        reply = "Ready to restart whenever you are."
+        options = ["Restart"]
 
-        reply = "We finished this cycle. Let me know when you're ready to begin again."
-        options = ["Start again"]
+    chat.append({"role":"assistant","content":reply})
+    return chat, gr.update(choices=options, value=options[0])
 
-    history.append({"role":"assistant","content":reply})
-    return history, gr.update(choices=options, value=options[0] if options else None)
-
-
+# ---- UI ----
 with gr.Blocks() as app:
-    gr.Markdown("##  CoAura — Interactive AI Chat Companion")
+    gr.Markdown("## 🤖 CoAura — NASA SOS BOT")
     chat = gr.Chatbot(type="messages", height=350)
-    picks = gr.Radio([], label="Choose an option")
+    picks = gr.Radio([], label="Select an option")
     btn = gr.Button("Continue")
 
     app.load(reset_game, [], [chat, picks])
