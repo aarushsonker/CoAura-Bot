@@ -139,7 +139,7 @@ def progress(choice, history):
 
 
 with gr.Blocks() as app:
-    gr.Markdown("##  CoAura — Interactive AI Chat Companion\n### We're exploring choices together — let's begin.")
+    gr.Markdown("##  CoAura — Interactive AI Chat Companion")
     chat = gr.Chatbot(type="messages", height=350)
     picks = gr.Radio([], label="Choose an option")
     btn = gr.Button("Continue")
