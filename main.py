@@ -7,14 +7,13 @@ system_health = 100
 img_state = 1  # reserved for future component indicators
 
 # img_state reference (future visual system)
-# 1 = System normal / stable
-# 2 = Oxygen system issue
-# 3 = Cooling system issue
-# 4 = Power system issue
-# 5 = System recovering / repair successful
-# 7 = Critical failure / shutdown
+# 1 = System normal / stable -- normal
+# 2 = Oxygen system issue -- display gas leaking
+# 3 = Cooling system issue -- display the spacecraft freezing
+# 4 = Power system issue -- display baterry icon malfunctioning
+# 5 = System recovering / repair successful -- show bandage on spacecraft
+# 7 = Critical failure / shutdown -- show spacecraft imploding into pieces
 
-# (State 6 removed — same meaning as 1)
 
 
 def reset_game():
