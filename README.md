@@ -1,12 +1,15 @@
-## CoAura Simulation Console
+## CoAura — NASA's SOS Response Agent
 
-A small interactive reactor-simulation demo built with Gradio. Play the role of the Commander and respond to CoAura — the chatbot that drives the simulation. The UI runs in your browser and uses a simple chat-like interface with choice buttons.
+An interactive space station emergency simulation game built with Gradio. Play as a Commander responding to critical system failures with the help of CoAura — NASA's SOS Response Agent chatbot. The UI runs in your browser with a simple chat-like interface and multiple-choice decisions.
 
 ### Features
 
-- Interactive decision tree driven simulation
-- Simple chat-based UI (Gradio)
-- Restartable scenarios and random outcomes for replayability
+- **Three critical systems to manage**: Oxygen (O2), Cooling, and Power
+- **Multi-level decision trees**: Each system failure has multiple choice paths
+- **Random outcomes**: 50% chance of success/failure for added replayability
+- **Progressive difficulty**: Fix one system, another fails — complete all three to win
+- **Visual state tracking**: `img_state` values (1-7) for future visual enhancements
+- Simple chat-based UI powered by Gradio
 
 ### Prerequisites
 
@@ -41,30 +44,40 @@ After launching, Gradio will print a local URL (for example http://127.0.0.1:786
 
 ### How to play
 
-- All bot messages come from CoAura (the chatbot). You won't see separate "system" prompt messages — CoAura speaks directly to the player.
-- Read CoAura's messages in the chat area (Mission Feed).
-- Choose an action from the radio buttons and click Submit.
-- Watch system health and messages; if the reactor fails you can restart the simulation.
+1. **Start the mission**: CoAura will prompt you to run a system scan or ignore warnings
+2. **Diagnose the problem**: A random system failure will be detected (O2, Cooling, or Power)
+3. **Make decisions**: Choose from two initial approaches to fix the problem
+4. **Final choice**: Each approach leads to two sub-options with 50% success rate
+5. **Continue or fail**: 
+   - Success → System stabilizes, another failure detected
+   - Failure → Catastrophic system failure, restart required
+6. **Win condition**: Successfully repair all three systems (O2, Cooling, Power)
 
-### Example conversation
+### Gameplay mechanics
 
-An example mission feed might look like:
+- **System Failures**: Three types randomized each playthrough
+  - **Oxygen (O2)**: Valve adjustments or backup rerouting
+  - **Cooling**: Flow rate changes or backup loop activation
+  - **Power**: Voltage regulation or auxiliary power switching
 
-```
-CoAura: 🧠 System online. Reactor instability detected, Commander.
-You: Run diagnostics
-CoAura: Coolant system at 43% integrity. What now?
-You: Patch coolant system
-CoAura: Patch successful. Reactor stabilizing. ✅
-```
+- **Decision structure**: Each failure has 4 possible outcomes (2×2 choices)
+- **Random outcomes**: Each final choice has a 50% chance of success
+- **Progressive gameplay**: Complete one system to unlock the next challenge
+- **Response delay**: Natural 0.5-1 second pause between bot responses
 
-This README and the UI present CoAura as the single chatbot voice for clarity.
-
-### Notes & next steps
-
-- Consider adding a `requirements.txt` or `pyproject.toml` to pin dependencies.
-- Add tests for the game logic (the functions `progress` and `reset_game`).
-- Add basic CI to run linting/tests.
+- **Visual system**: The code includes `img_state` values (1-7) ready for adding spacecraft visuals:
+  - `1` = Normal/stable
+  - `2` = Oxygen issue (gas leaking)
+  - `3` = Cooling issue (freezing)
+  - `4` = Power issue (battery malfunction)
+  - `5` = System recovering (bandage on spacecraft)
+  - `6` = Stable state
+  - `7` = Critical failure (spacecraft imploding)
+- Consider adding a `requirements.txt` with `gradio` pinned to a specific version
+- Add tests for game logic (`progress` and `reset_game` functions)
+- Implement visual feedback using `img_state` values
+- Add sound effects for immersion
+- Add basic CI to run linting/tests
 
 ### License
 
