@@ -71,5 +71,3 @@ This README and the UI present CoAura as the single chatbot voice for clarity.
 This repository includes a `LICENSE` file — see it for license details.
 
 ---
-
-- README.md Made with Github Copilot
